@@ -2,6 +2,8 @@ package insurance;
 
 import lombok.Data;
 
+import java.util.HashMap;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -22,22 +24,21 @@ class Customer {
 	@NotEmpty
 	private String dob;
 	
+	private final HashMap<String, Car> carDb;
+	
 	private String carName;
-	
 	private int age;
-	
-	private int accidents;	
-	
-	private int insurance;
+	private int accidents;
 
 	public Customer(@NotEmpty String name, @NotEmpty String postalCode, @NotEmpty String dob) {
 		this.name = name;
 		this.postalCode = postalCode;
 		this.dob = dob;
+		this.carDb = new HashMap<String , Car>();
 	}
 	
 	Customer(){
-		
+		this.carDb = new HashMap<String , Car>();
 	}
 
 	public Customer(@NotEmpty String name, @NotEmpty String postalCode, @NotEmpty String dob, String carName,
@@ -45,18 +46,15 @@ class Customer {
 		this.name = name;
 		this.postalCode = postalCode;
 		this.dob = dob;
-		this.carName = carName;
-		this.age = age;
-		this.accidents = accidents;
+		this.carDb = new HashMap<String , Car>();
+		Car car = new Car(age, accidents);
+		this.carDb.put(carName, car);
 	}
 	
-	public int getInsurance() {
-		if(!(carName==null)) {
-			insurance = age*1000;
-		}else
-			insurance=0;
-		return insurance;
+	public void setCarDb(String carName, int age, int accidents) {
+		this.carDb.put(carName, new Car(age, accidents));
 	}
+
 
 //	public static Customer create(Map<String, String> map) {
 //		String name = map.get("name");

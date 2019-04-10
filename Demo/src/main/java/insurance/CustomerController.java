@@ -1,7 +1,9 @@
 package insurance;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,7 +31,7 @@ class CustomerController {
 	}
 	
 	@PostMapping("/customers")
-	Customer newEmployee(@RequestBody Customer newCustomer) {
+	Customer newCustomer(@RequestBody Customer newCustomer) {
 		return repository.save(newCustomer);
 	}
 
@@ -42,7 +44,28 @@ class CustomerController {
 			.orElseThrow(() -> new CustomerNotFoundException(id));
 	}
 	
-	@GetMapping("/customers/{id}/car/insurance")
+	@GetMapping("/customers/{id}/car")
+	Optional<Object> getAllCustomerCars(@PathVariable Long id){
+		return repository.findById(id)
+			.map(customer -> {
+				return customer.getCarDb();
+			});
+	}
+	
+	@GetMapping("/customers/{id}/car/{carName}")
+	Optional<Object> getCustomerCar(@PathVariable Long id, @PathVariable String carName){
+		return repository.findById(id)
+			.map(customer -> {
+				return customer.getCarDb().get(carName);
+			});
+	}
+	@GetMapping("/customers/{id}/car/{carName}/insurance")
+	Optional<Object> getCustomerCarInsurance(@PathVariable Long id, @PathVariable String carName){
+		return repository.findById(id)
+			.map(customer -> {
+				return customer.getCarDb().get(carName).getInsurance();
+			});
+	}
 
 	@PutMapping("/customers/{id}")
 	Customer replaceCustomer(@RequestBody Customer newCustomer, @PathVariable Long id) {
@@ -65,9 +88,7 @@ class CustomerController {
 
 		return repository.findById(id)
 			.map(customer -> {
-				customer.setCarName(newCustomer.getCarName());
-				customer.setAge(newCustomer.getAge());
-				customer.setAccidents(newCustomer.getAccidents());
+				customer.setCarDb(newCustomer.getCarName(), newCustomer.getAge(), newCustomer.getAccidents());
 				return repository.save(customer);
 			})
 			.orElseGet(() -> {
@@ -79,7 +100,7 @@ class CustomerController {
 	
 
 	@DeleteMapping("/customers/{id}")
-	void deleteEmployee(@PathVariable Long id) {
+	void deleteCustomer(@PathVariable Long id) {
 		repository.deleteById(id);
 	}
 }
