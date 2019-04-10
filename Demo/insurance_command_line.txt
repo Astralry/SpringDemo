@@ -1,0 +1,6 @@
+ADD USER
+curl -X POST localhost:8080/customers -H "Content-type:application/json" -d "{\"name\":\"Adrian\",\"postalCode\":\"Q1W2E3\",\"dob\":\"April102019\"}"
+
+curl -X PUT localhost:8080/customers/3 -H "Content-type:application/json" -d "{\"name\":\"Adrian\",\"postalCode\":\"Q1W2E3\",\"dob\":\"April102019\"}"
+
+curl -X PUT localhost:8080/customers/3/car -H "Content-type:application/json" -d "{\"carName\":\"PKFIRE\",\"age\":2,\"accidents\":1}"
