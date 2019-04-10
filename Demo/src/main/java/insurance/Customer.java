@@ -51,7 +51,7 @@ class Customer {
 	}
 	
 	public int getInsurance() {
-		if(!carName.equals(null)) {
+		if(!(carName==null)) {
 			insurance = age*1000;
 		}else
 			insurance=0;
