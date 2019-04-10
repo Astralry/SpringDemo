@@ -2,19 +2,24 @@ package insurance;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.Resources;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping(produces = "application/hal+json")
 class CustomerController {
 
 	private final CustomerRepository repository;
@@ -26,8 +31,16 @@ class CustomerController {
 	// Aggregate root
 
 	@GetMapping("/customers")
-	List<Customer> all() {
-		return repository.findAll();
+	Resources<Resource<Customer>> allCustomer() {
+
+		List<Resource<Customer>> customers = repository.findAll().stream()
+			.map(customer -> new Resource<>(customer,
+				linkTo(methodOn(CustomerController.class).getCustomer(customer.getId())).withSelfRel(),
+				linkTo(methodOn(CustomerController.class).allCustomer()).withRel("customers")))
+			.collect(Collectors.toList());
+
+		return new Resources<>(customers,
+			linkTo(methodOn(CustomerController.class).allCustomer()).withSelfRel());
 	}
 	
 	@PostMapping("/customers")
@@ -38,32 +51,48 @@ class CustomerController {
 	// Single item
 
 	@GetMapping("/customers/{id}")
-	Customer one(@PathVariable Long id) {
+	Resource<Customer> getCustomer(@PathVariable Long id) {
 
-		return repository.findById(id)
+		Customer customer = repository.findById(id)
 			.orElseThrow(() -> new CustomerNotFoundException(id));
+		
+		return new Resource<>(customer,
+				linkTo(methodOn(CustomerController.class).getCustomer(id)).withSelfRel(),
+				//linkTo(methodOn(Car.class).getCarName()).withSelfRel(),
+				//linkTo(methodOn(CustomerController.class).getAllCustomerCars(id)).withRel("car"),
+				linkTo(methodOn(CustomerController.class).allCustomer()).withRel("customer"));
 	}
 	
 	@GetMapping("/customers/{id}/car")
 	Optional<Object> getAllCustomerCars(@PathVariable Long id){
+		
+//		List<Resource<Optional<Object>>> cars = repository.findById(id)
+//				.map(customer -> new Resource<>(customer,
+//					linkTo(methodOn(CustomerController.class).getCustomerCar(id, customer.getCarDb())).withSelfRel(),
+//					linkTo(methodOn(CustomerController.class).getAllCustomerCars(id)).withRel("cars")))
+//				.collect(Collectors.toList());
+//		return new Resources<>(cars,
+//				linkTo(methodOn(CustomerController.class).getAllCustomerCars(id)).withSelfRel());
+//		
+		
 		return repository.findById(id)
 			.map(customer -> {
 				return customer.getCarDb();
 			});
 	}
 	
-	@GetMapping("/customers/{id}/car/{carName}")
-	Optional<Object> getCustomerCar(@PathVariable Long id, @PathVariable String carName){
+	@GetMapping("/customers/{id}/car/{carId}")
+	Optional<Object> getCustomerCar(@PathVariable Long id, @PathVariable String carId){
 		return repository.findById(id)
 			.map(customer -> {
-				return customer.getCarDb().get(carName);
+				return customer.getCarDb().get(carId);
 			});
 	}
 	@GetMapping("/customers/{id}/car/{carName}/insurance")
-	Optional<Object> getCustomerCarInsurance(@PathVariable Long id, @PathVariable String carName){
+	Optional<Object> getCustomerCarInsurance(@PathVariable Long id, @PathVariable String carId){
 		return repository.findById(id)
 			.map(customer -> {
-				return customer.getCarDb().get(carName).getInsurance();
+				return customer.getCarDb().get(carId).getInsurance();
 			});
 	}
 
@@ -97,7 +126,13 @@ class CustomerController {
 			});
 	}
 	
-	
+	@DeleteMapping("/customers/{id}/car/{carName}")
+	Optional<Object> deleteCustomerCar(@PathVariable Long id, @PathVariable String carId){
+		return repository.findById(id)
+			.map(customer -> {
+				return customer.getCarDb().remove(carId);
+			});
+	}
 
 	@DeleteMapping("/customers/{id}")
 	void deleteCustomer(@PathVariable Long id) {

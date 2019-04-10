@@ -24,7 +24,7 @@ class Customer {
 	@NotEmpty
 	private String dob;
 	
-	private final HashMap<String, Car> carDb;
+	private HashMap<String, Car> carDb;
 	
 	private String carName;
 	private int age;
@@ -47,12 +47,12 @@ class Customer {
 		this.postalCode = postalCode;
 		this.dob = dob;
 		this.carDb = new HashMap<String , Car>();
-		Car car = new Car(age, accidents);
+		Car car = new Car(carName, age, accidents);
 		this.carDb.put(carName, car);
 	}
 	
 	public void setCarDb(String carName, int age, int accidents) {
-		this.carDb.put(carName, new Car(age, accidents));
+		this.carDb.put(carName, new Car(carName, age, accidents));
 	}
 
 

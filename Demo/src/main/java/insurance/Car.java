@@ -11,11 +11,15 @@ import javax.validation.constraints.NotEmpty;
 
 @Data
 public class Car implements Serializable {
+	
+	private @Id String carName;
+	
 	private int age;
 	
 	private int accidents;
 
-	public Car(int age, int accidents) {
+	public Car(String carName, int age, int accidents) {
+		this.carName = carName;
 		this.age = age;
 		this.accidents = accidents;
 	}	
